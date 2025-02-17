@@ -5,8 +5,29 @@
 */
 
 
-fn sort<T>(array: &mut [T]){
-	//TODO
+fn quick_sort<T: std::cmp::Ord>(array: &mut [T]) {
+    if array.len() <= 1 {
+        return;
+    }
+    let pivot = partition(array);
+    quick_sort(&mut array[0..pivot]);
+    quick_sort(&mut array[pivot + 1..]);
+}
+fn partition<T: std::cmp::Ord>(array: &mut [T]) -> usize {
+    let pivot = array.len() - 1;
+    let mut i = 0;
+    for j in 0..pivot {
+        if array[j] <= array[pivot] {
+            array.swap(i, j);
+            i += 1;
+        }
+    }
+    array.swap(i, pivot);
+    i
+}
+
+fn sort<T: std::cmp::Ord>(array: &mut [T]){
+    quick_sort(array);
 }
 #[cfg(test)]
 mod tests {
