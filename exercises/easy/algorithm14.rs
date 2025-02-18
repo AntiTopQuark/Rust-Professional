@@ -9,11 +9,21 @@
     Hint: You can modify the input array in place to track duplicates.
 */
 
-use std::fmt::{self, Display, Formatter};
+use std::{collections::HashMap, fmt::{self, Display, Formatter}};
 
 pub fn find_duplicates(nums: Vec<i32>) -> Vec<i32> {
-    // TODO: Implement the logic to find all duplicates in the array
-    Vec::new() // Placeholder return value
+    let mut duplicates = Vec::new();
+    let mut map = HashMap::new();
+    for num in nums {
+        let count = map.entry(num).or_insert(0);
+        *count += 1;
+        println!("view map: {num} => {count}");
+        if *count == 2 {
+            duplicates.push(num);
+        }
+    }
+    duplicates.sort();
+    duplicates
 }
 
 #[cfg(test)]
