@@ -17,7 +17,6 @@ pub fn intersection(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
     for num in nums1 {
         set1.insert(num);
     }
-
     let mut set2 = HashSet::new();
     for num in nums2 {
         set2.insert(num);
@@ -27,9 +26,8 @@ pub fn intersection(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
     for num in inner_set {
         result.push(*num);
     }
+    result.sort();
     result
-    
-    
 }
 
 #[cfg(test)]
