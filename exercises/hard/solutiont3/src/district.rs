@@ -44,15 +44,17 @@ impl UnionFind {
 pub fn count_provinces() -> String {
     // 读取json
     let file_content = std::fs::read_to_string("district.json").unwrap();
-    // let mut _res = vec![];
+    let mut res = vec![];
     let mut iter = file_content.lines();
+    
+    let mut city_all = vec![];
     while let Some(line) =  iter.next() {
         let re1 = Regex::new(r#""(\d+)":\s*\{"#).unwrap();
         let mut current_number = 1;
         let mut need_output_once = false;
         for captures in re1.captures_iter(&line).take(1) {
             // 提取数字部分
-            let number = captures.get(1).map_or("", |m| m.as_str()).parse::<usize>().unwrap();
+            let number: usize = captures.get(1).map_or("", |m| m.as_str()).parse::<usize>().unwrap();
 
             if number > current_number {
                 need_output_once = true;
@@ -60,71 +62,50 @@ pub fn count_provinces() -> String {
             }
             
             let re = Regex::new(r#"[\u4e00-\u9fa5]+"#).unwrap(); 
-            
-            let mut city_map = HashMap::new();
+            let mut city_batch = vec![];
             'aaa:while let Some(line2) = iter.next() {
-                let mut first_city = "";
                 let mut city_vec = vec![];
                 for captures in re.captures_iter(&line2) {
                     let city = captures.get(0).map_or("", |m| m.as_str());
-                    if city == "" {
-                        break 'aaa;
-                    } else if first_city == "" {
-                        first_city = city;
-                    } else {
-                        city_vec.push(city);
-                    }
+                    city_vec.push(city);
                 }
-                city_map.insert(first_city, city_vec);
+                if city_vec.is_empty() {
+                    break;
+                }
+                city_batch.push(city_vec);
             }
-            println!("{number}, {:?}", city_map);
-            println!();
+            // println!("{number}, {:?}", city_batch);
+            city_all.push(city_batch);
         }
-        
     }
 
+    for city_batch in city_all {
+        let mut city_nums = 0;
+        let mut city_index_map = HashMap::new();
+        for connection in &city_batch {
+            for c in connection {
+                city_index_map.entry(c).or_insert(city_nums);
+                city_nums = city_index_map.len();
+            }
+        }
+        let mut uf = UnionFind::new(city_nums);
 
+        for connection in &city_batch {
+            let first_city_index = city_index_map.get(connection.get(0).unwrap()).unwrap();
 
-    
-    // if let Value::Object(batchs) = data {
-    //     for (key, value) in batchs {
-    //         println!("{}:{}", key, value);
-            // let city_data: HashMap<String, Vec<String>> = serde_json::from_value(value).unwrap();
-            // let mut city_nums = 0;
-            // let mut city_index_map = HashMap::new();
-            // for (city, connection) in &city_data {
-            //     city_index_map.entry(city).or_insert(city_nums);
-            //     city_nums = city_index_map.len();
-            //     for c in connection {
-            //         city_index_map.entry(c).or_insert(city_nums);
-            //         city_nums = city_index_map.len();
-            //         println!("{}:{}", city, c);
+            for i in 1..connection.len() {
+                let index = city_index_map.get(connection.get(i).unwrap()).unwrap();
+                uf.union(*first_city_index, *index);
+            }
+        }
+        let mut provinces = HashSet::new();
+        for i in 0..city_nums {
+            provinces.insert(uf.find(i));
+        }
+        res.push(provinces.len());
+    }
+    let number: Vec<String> = res.iter().map(|&x| x.to_string()).collect();
 
-            //     }
-            // }
-
-            // let mut uf = UnionFind::new(city_nums);
-
-            // for (city, connections) in &city_data {
-            //     let city_index = city_index_map.get(city).copied().unwrap();
-                
-            //     for c in connections {
-            //         let c_index = city_index_map.get(c).copied().unwrap();
-            //         uf.union(city_index, c_index);
-            //         println!("{}:{}, {}:{}, {}, {}", city, city_index, c, c_index, uf.parent[city_index], uf.parent[c_index]);
-            //     }
-            // }
-
-            // println!("{:?}", uf.parent);
-            
-            // // wordcount
-            // let mut provinces = HashSet::new();
-            // for i in 0..city_nums {
-            //     provinces.insert(uf.find(i));
-            // }
-            // println!("{:?}", provinces);
-    //     }
-    // }
-
-    "".to_string()
+    let sentence = number.join(",");  // 使用空格作为分隔符
+    sentence
 }
