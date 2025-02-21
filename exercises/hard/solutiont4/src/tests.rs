@@ -11,6 +11,7 @@ mod tests {
     // 基础测试
     ("2025-01-01", "1,3,1,364,28,0"), // 新年第一天，周三，距春节28天
     ("2025-01-18", "3,6,18,347,11,1"), // 周六，2025年第3周，距春节11天
+    // 第三周  周六  今年18天。还剩下, 距离春节
 
     // 边界情况测试
     ("2025-12-31", "1,3,365,0,48,1"), // 年末最后一天，周三，距2026年春节48天
@@ -37,7 +38,9 @@ mod tests {
             let start = Instant::now();
             let result = time_info(*input);
             let duration = start.elapsed();
-
+            if (result != *expected) {
+                println!("Input: {}, Expected: {}, Result: {}, Duration: {:?}", input, expected, result, duration);
+            }
             // 时间超0.2s，判定不合格
             if duration <= Duration::from_millis(200) && result == *expected {
                 total_score += 10.0;
